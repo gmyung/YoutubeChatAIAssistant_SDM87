@@ -975,3 +975,271 @@
 .chat-empty-state p {
   margin: 0;
 }
+
+/* ── Play video card ─────────────────────────────────────────────────────── */
+.play-video-card-wrap {
+  margin: 0.75rem 0;
+}
+
+.play-video-card {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 320px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 12px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.play-video-card:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.play-video-thumb {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.play-video-title {
+  padding: 0.6rem 0.75rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(255,255,255,0.9);
+}
+
+.play-video-card-inline {
+  cursor: default;
+  pointer-events: auto;
+}
+
+.play-video-card-inline a.play-video-open-link {
+  display: inline-block;
+  margin: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  color: #818cf8;
+}
+
+.play-video-embed-wrap {
+  margin-top: 0.75rem;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+  max-width: 640px;
+}
+
+.play-video-iframe {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: block;
+  border: none;
+}
+
+/* ── Generated image (download + enlarge) ──────────────────────────────────── */
+.generated-image-wrap {
+  margin: 0.75rem 0;
+}
+
+.generated-image-btn {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: block;
+}
+
+.generated-image-thumb {
+  max-width: 100%;
+  max-height: 280px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.generated-image-actions {
+  margin-top: 0.4rem;
+}
+
+.generated-image-actions {
+  display: flex;
+  align-items: center;
+}
+
+.generated-image-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  cursor: pointer;
+  padding: 1rem;
+}
+
+.generated-image-overlay-inner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: default;
+  max-width: 95vw;
+  max-height: 95vh;
+}
+
+.generated-image-full {
+  max-width: 90vw;
+  max-height: 75vh;
+  object-fit: contain;
+  cursor: default;
+  border-radius: 8px;
+}
+
+.generated-image-download-btn {
+  padding: 0.5rem 1rem;
+  background: #6366f1;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.generated-image-download-btn:hover {
+  background: #4f46e5;
+}
+
+.generated-image-download-btn.enlarged-download {
+  align-self: center;
+}
+
+.generated-image-close {
+  position: absolute;
+  top: -0.5rem;
+  right: -0.5rem;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.15);
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.generated-image-close:hover {
+  background: rgba(255,255,255,0.25);
+}
+
+/* ── Metric vs time chart (from MetricVsTimeChart) ───────────────────────────── */
+.metric-vs-time-wrap {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+}
+
+.metric-vs-time-label {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.6);
+  margin: 0 0 0.5rem;
+}
+
+.metric-vs-time-chart {
+  cursor: pointer;
+}
+
+.metric-vs-time-hint {
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.4);
+  margin: 0.5rem 0 0;
+}
+
+.metric-vs-time-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  cursor: pointer;
+}
+
+.metric-vs-time-modal {
+  background: #1a1a2e;
+  border-radius: 14px;
+  padding: 1rem;
+  max-width: 90vw;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  cursor: default;
+}
+
+.metric-vs-time-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.metric-vs-time-modal-header button {
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.8);
+  font-size: 1.25rem;
+  cursor: pointer;
+}
+
+.metric-vs-time-modal-footer button {
+  padding: 0.4rem 0.8rem;
+  background: #6366f1;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+/* ── Stats card (compute_stats_json) ───────────────────────────────────────── */
+.stats-json-card {
+  margin: 0.75rem 0;
+  padding: 1rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px;
+  max-width: 420px;
+}
+
+.stats-json-title {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  margin-bottom: 0.6rem;
+}
+
+.stats-json-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.5rem 1rem;
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.75);
+}
+
+.stats-json-item strong {
+  color: rgba(255,255,255,0.95);
+  margin-right: 0.35rem;
+}

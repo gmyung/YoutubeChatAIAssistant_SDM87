@@ -5,3 +5,42 @@
 .App {
   min-height: 100vh;
 }
+
+.app-with-tabs {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.app-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
+  background: rgba(0,0,0,0.2);
+}
+
+.app-tab {
+  padding: 0.75rem 1.25rem;
+  background: transparent;
+  color: rgba(255,255,255,0.7);
+  border: none;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.app-tab:hover {
+  color: #fff;
+}
+
+.app-tab.active {
+  color: #fff;
+  border-bottom: 2px solid #818cf8;
+  margin-bottom: -1px;
+}
+
+.app-with-tabs > .chat-layout,
+.app-with-tabs > .youtube-download-layout {
+  flex: 1;
+  min-height: 0;
+}

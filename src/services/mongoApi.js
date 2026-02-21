@@ -12,10 +12,10 @@ const api = async (path, options = {}) => {
 
 // ── Users ────────────────────────────────────────────────────────────────────
 
-export const createUser = async (username, password, email = '') => {
+export const createUser = async (username, password, email = '', firstName = '', lastName = '') => {
   await api('/api/users', {
     method: 'POST',
-    body: JSON.stringify({ username, password, email }),
+    body: JSON.stringify({ username, password, email, firstName, lastName }),
   });
 };
 
@@ -24,7 +24,13 @@ export const findUser = async (username, password) => {
     method: 'POST',
     body: JSON.stringify({ username, password }),
   });
-  return data.ok ? { username: data.username } : null;
+  return data.ok
+    ? {
+        username: data.username,
+        firstName: data.firstName || '',
+        lastName: data.lastName || '',
+      }
+    : null;
 };
 
 // ── Sessions ─────────────────────────────────────────────────────────────────
@@ -62,4 +68,24 @@ export const saveMessage = async (sessionId, role, content, imageData = null, ch
 
 export const loadMessages = async (sessionId) => {
   return api(`/api/messages?session_id=${encodeURIComponent(sessionId)}`);
+};
+
+// ── Image generation (for generateImage tool) ─────────────────────────────────
+
+export const generateImage = async (prompt, imageBase64 = null) => {
+  const body = { prompt };
+  if (imageBase64) body.imageBase64 = imageBase64;
+  return api('/api/generate-image', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+};
+
+// ── YouTube channel download ───────────────────────────────────────────────────
+
+export const downloadChannelData = async (channelUrl, maxVideos = 10) => {
+  return api('/api/youtube/channel', {
+    method: 'POST',
+    body: JSON.stringify({ channelUrl, maxVideos: Math.min(Math.max(Number(maxVideos) || 10, 1), 100) }),
+  });
 };
