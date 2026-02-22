@@ -1,80 +1,162 @@
-# Chat App
+# YouTube Chat AI Assistant (YoutubeChatAIAssistant_SDM87)
 
-A React chatbot with Gemini AI, web search, user auth, MongoDB persistence, and client-side data analysis. Glassmorphism UI with streaming responses, CSV upload, and code execution.
+A React chatbot that acts as a **YouTube analyze assistant**: users can download YouTube channel video metadata, drag JSON into the chat, and use AI-powered tools to plot metrics, play videos in-chat, compute statistics, and generate images. Built with Gemini, MongoDB, and a YouTube Data API integration.
 
-## How It Works
+Run `npm install` and `npm start` from this directory.
 
-- **Frontend (React)** – Login/create account, chat UI with streaming, drag-and-drop CSV/images, Recharts bar charts
-- **Backend (Express)** – REST API for users and sessions, connects to MongoDB
-- **AI (Gemini)** – Streaming chat, Google Search grounding, Python code execution, and function calling for client-side tools
-- **Storage (MongoDB)** – Users and chat sessions stored in `chatapp` database
+---
+
+## Implemented Features (Task Summary)
+
+### Chat personalization
+- **First Name and Last Name** were added to the Create Account form.
+- Both are saved in the database (MongoDB `users` collection: `firstName`, `lastName`).
+- After login, first and last name are put in the **chat context** so the AI knows who it is talking to.
+- The **system prompt** (`public/prompt_chat.txt`) was changed so the AI **addresses the user by name in the first message**.
+
+### YouTube Channel Data Download tab
+- After logging in, a tab **"YouTube Channel Download"** is available next to Chat.
+- Users can enter a **YouTube channel URL** (e.g. `https://www.youtube.com/@veritasium`).
+- **Max videos** input (default 10, max 100) and a **Download Channel Data** button.
+- On click, the app downloads metadata for the channel videos: **title, description, transcript (if available), duration, release date, view count, like count, comment count, video URL**.
+- Data is returned as JSON and can be **downloaded** by the user; a **progress bar** is shown while downloading.
+- Sample data for 10 videos from `https://www.youtube.com/@veritasium` is saved in **`public/`** (e.g. `veritasium_channel_10.json`, `channel_10_videos.json`) so the flow works without an API key.
+
+### JSON chat input
+- Users can **drag a JSON file** (channel data) into the chat to load it into the **conversation context**.
+- The data is kept **locally** in the session so tools and code can use it later.
+- The **system prompt** was updated so the AI knows how to deal with JSON files and when to use the YouTube tools.
+
+### Required tool names (exact)
+
+All four chat tools use these **exact names** and are described in **`public/prompt_chat.txt`**:
+
+| Tool name | Purpose |
+|-----------|--------|
+| **generateImage** | Image generation from a text prompt and an optional anchor image. |
+| **plot_metric_vs_time** | Plot any numeric field (views, likes, comments, etc.) vs time for channel videos. |
+| **play_video** | Play a video from channel data (title + thumbnail; video can open in a new tab or play embedded in chat). |
+| **compute_stats_json** | Mean, median, std, min, max for any numeric field in the channel JSON. |
+
+---
+
+## Task Instructions (Reference)
+
+### Chat Tool: generateImage
+- Lets the user **generate an image** in the chat from a **text prompt** and an **anchor image** (dragged in).
+- The image is **displayed in the chat**.
+- User can **download** the image and **click to enlarge** it.
+- Described in **`prompt_chat.txt`**.
+
+### Chat Tool: plot_metric_vs_time
+- Lets the user **plot any numeric field** (views, likes, comments, etc.) **vs time** for the channel videos via chat.
+- The plot is a **React component** displayed in the chat.
+- **Click to enlarge**; download button was optional (implemented as enlarge only per later preference).
+- Described in **`prompt_chat.txt`**.
+
+### Chat Tool: play_video
+- When the user asks to **"play" or "open"** a video from the loaded channel data, the app shows a **clickable card** with **video title and thumbnail**.
+- Video can **open in a new tab** on YouTube or **play embedded** in the chat (iframe).
+- User can specify the video by **title** (e.g. "play the asbestos video"), **ordinal** (e.g. "play the first video"), or **"most viewed"**.
+- Described in **`prompt_chat.txt`**.
+
+### Chat Tool: compute_stats_json
+- Computes **mean, median, std, min, max** for any numeric field in the channel JSON (e.g. `view_count`, `like_count`, `comment_count`, `duration`).
+- Used when the user asks for **statistics, average, or distribution** of a numeric column.
+- Described in **`prompt_chat.txt`**.
+
+### Prompt engineering
+- The system prompt in **`prompt_chat.txt`** was updated so the AI is a **YouTube analyze assistant**.
+- It explains that the AI **receives JSON files** of YouTube channel data.
+- It explains that the AI has **access to tools** to analyze the data and generate content (including the four tools above).
+
+---
+
+## MongoDB Troubleshooting
+
+### "bad auth : authentication failed"
+- This message comes from **MongoDB Atlas**, not from your app login (e.g. username "GM21").
+- It means the **connection string** in `.env` (e.g. `REACT_APP_MONGODB_URI`) has the wrong **database user** or **password** for Atlas.
+
+**What to do:**
+1. In **MongoDB Atlas** → **Database Access** → open your database user (e.g. `chatadmin2`).
+2. Ensure the **password** matches exactly what you have in `.env` (no extra spaces; if you changed it in Atlas, update `.env` and restart the server).
+3. Add **`?authSource=admin`** to the end of your connection string in `.env`:
+   ```env
+   REACT_APP_MONGODB_URI=mongodb+srv://USER:PASSWORD@CLUSTER.mongodb.net/?authSource=admin
+   ```
+4. **Restart the server** after any `.env` change (env is read only at startup).
+5. If the password has special characters (`@`, `#`, `:`, `/`, `%`), **URL-encode** them in the URI (e.g. `@` → `%40`).
+
+### "Invalid scheme, expected connection string to start with mongodb:// or mongodb+srv://"
+- The value of `REACT_APP_MONGODB_URI` in `.env` is wrong or mangled (e.g. leftover placeholder text).
+- Fix: set it to **only** the connection string, for example:
+  ```env
+  REACT_APP_MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/?authSource=admin
+  ```
+
+### Login still shows "bad auth" after fixing `.env`
+- Often an **old server process** is still running on port 3001 with the old env.
+- **Stop all** `npm start` / Node processes, then:
+  ```bash
+  lsof -ti :3001 | xargs kill -9
+  ```
+  Then start the app again with `npm start` from this directory.
+
+### Confirm MongoDB user and auth database
+- In Atlas → **Database Access** → your user → check **Authentication Database**.
+- It should be **"Atlas admin"** (the `admin` database). If it's something else, either change it to Atlas admin or set `authSource` in the URI to that database.
+
+---
+
+## Running the App
+
+From this directory:
+
+```bash
+npm install
+npm start
+```
+
+- **Frontend:** http://localhost:3000  
+- **Backend:** http://localhost:3001  
+
+Create a `.env` file in this directory with at least:
+- `REACT_APP_GEMINI_API_KEY` – from [Google AI Studio](https://aistudio.google.com/apikey)
+- `REACT_APP_MONGODB_URI` – MongoDB Atlas connection string (with `?authSource=admin` if needed)
+- `YOUTUBE_API_KEY` – (optional) for the YouTube Channel Download tab; from [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+
+### Option 2: Separate terminals (for development)
+
+**Terminal 1 — Backend:**
+```bash
+npm run server
+```
+
+**Terminal 2 — Frontend:**
+```bash
+npm run client
+```
+
+### Verify Backend
+
+- http://localhost:3001 – Server status page  
+- http://localhost:3001/api/status – JSON with `usersCount` and `sessionsCount`
+
+---
 
 ## API Keys & Environment Variables
-
-Create a `.env` file in the project root with:
 
 | Variable | Required | Where used | Description |
 |----------|----------|------------|-------------|
 | `REACT_APP_GEMINI_API_KEY` | Yes | Frontend (baked in at build) | Google Gemini API key. Get one at [Google AI Studio](https://aistudio.google.com/apikey). |
-| `REACT_APP_MONGODB_URI` | Yes | Backend | MongoDB Atlas connection string. Format: `mongodb+srv://USER:PASSWORD@CLUSTER.mongodb.net/` |
-| `REACT_APP_API_URL` | Production only | Frontend (baked in at build) | Full URL of the backend, e.g. `https://your-backend.onrender.com`. Leave blank for local dev (proxy handles it). |
-| `YOUTUBE_API_KEY` | For YouTube tab | Backend | YouTube Data API v3 key for the "YouTube Channel Download" tab. Get one in [Google Cloud Console](https://console.cloud.google.com/apis/credentials). |
+| `REACT_APP_MONGODB_URI` | Yes | Backend | MongoDB Atlas connection string. Use `?authSource=admin` if needed. |
+| `REACT_APP_API_URL` | Production only | Frontend | Full URL of the backend, e.g. `https://your-backend.onrender.com`. Leave blank for local dev. |
+| `YOUTUBE_API_KEY` | For YouTube tab | Backend | YouTube Data API v3 key. [Google Cloud Console](https://console.cloud.google.com/apis/credentials). |
 
-The backend also accepts `MONGODB_URI` or `REACT_APP_MONGO_URI` as the MongoDB connection string if you prefer those names.
+The backend also accepts `MONGODB_URI` or `REACT_APP_MONGO_URI` as the MongoDB connection string.
 
-### Example `.env` (local development)
-
-```
-REACT_APP_GEMINI_API_KEY=AIzaSy...
-REACT_APP_MONGODB_URI=mongodb+srv://user:password@cluster.mongodb.net/
-# REACT_APP_API_URL not needed locally — the dev server proxies /api to localhost:3001
-# YOUTUBE_API_KEY=optional, for YouTube Channel Download tab
-```
-
-## MongoDB Setup
-
-1. Create a [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) account and cluster.
-2. Get your connection string (Database → Connect → Drivers).
-3. Put it in `.env` as `REACT_APP_MONGODB_URI`.
-
-All collections are created automatically on first use.
-
-### Database: `chatapp`
-
-#### Collection: `users`
-
-One document per registered user.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `_id` | ObjectId | Auto-generated |
-| `username` | string | Lowercase username |
-| `password` | string | bcrypt hash |
-| `email` | string | Email address (optional) |
-| `createdAt` | string | ISO timestamp |
-
-#### Collection: `sessions`
-
-One document per chat conversation.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `_id` | ObjectId | Auto-generated — used as `session_id` |
-| `username` | string | Owner of this chat |
-| `agent` | string | AI persona (e.g. `"lisa"`) |
-| `title` | string | Auto-generated name, e.g. `"Chat · Feb 18, 2:34 PM"` |
-| `createdAt` | string | ISO timestamp |
-| `messages` | array | Ordered list of messages (see below) |
-
-Each item in `messages`:
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `role` | string | `"user"` or `"model"` |
-| `content` | string | Message text (plain, no CSV base64) |
-| `timestamp` | string | ISO timestamp |
-| `imageData` | array | *(optional)* Base64 image attachments `[{ data, mimeType }]` |
-| `toolCalls` | array | *(optional)* Client-side tool invocations `[{ name, args, result }]` |
+---
 
 ## Deploying to Render
 
@@ -100,8 +182,6 @@ Add this environment variable in the Render dashboard:
 
 Once deployed, copy the backend URL (e.g. `https://chatapp-backend.onrender.com`).
 
----
-
 **2. Deploy the frontend**
 
 New → **Static Site** → same repo.
@@ -116,68 +196,17 @@ Add these environment variables:
 | Variable | Value |
 |----------|-------|
 | `REACT_APP_GEMINI_API_KEY` | Your Gemini API key |
-| `REACT_APP_API_URL` | Backend URL from step 1, e.g. `https://chatapp-backend.onrender.com` |
+| `REACT_APP_API_URL` | Backend URL from step 1 |
 
-> **Important:** `REACT_APP_*` variables are baked into the JavaScript bundle at build time. If you change them in the dashboard, you must trigger a new deploy of the static site.
+> **Important:** `REACT_APP_*` variables are baked into the bundle at build time. If you change them, trigger a new deploy of the static site.
 
----
-
-**Or use the Blueprint (both services at once)**
-
-New → **Blueprint** → connect your repo. Render reads `render.yaml` and creates both services. You'll be prompted to enter the four secrets (`MONGODB_URI`, `REACT_APP_GEMINI_API_KEY`, `REACT_APP_API_URL`) after creation.
-
-> **Note:** Because `REACT_APP_API_URL` must point to the backend's URL, which is only known after the backend is deployed, you may need to set `REACT_APP_API_URL` and re-deploy the static site after the first Blueprint run.
-
----
+**Or use the Blueprint** – New → **Blueprint** → connect your repo. You'll be prompted for `MONGODB_URI`, `REACT_APP_GEMINI_API_KEY`, `REACT_APP_API_URL` after creation. You may need to set `REACT_APP_API_URL` and re-deploy the static site after the first run.
 
 ### Free tier cold starts
 
-Render's free plan spins down services after 15 minutes of inactivity. The first request after a sleep takes ~30 seconds. Upgrade to the Starter plan ($7/mo) to avoid this.
+Render's free plan spins down after 15 minutes of inactivity. First request after sleep can take ~30 seconds.
 
 ---
-
-## Running the App
-
-### Option 1: Both together (single terminal)
-
-```bash
-npm install
-npm start
-```
-
-> **Note:** `npm install` installs all required packages automatically. See [Dependencies](#dependencies) below for the full list.
-
-### Option 2: Separate terminals (recommended for development)
-
-First, install dependencies once:
-
-```bash
-npm install
-```
-
-Then open two terminals in the project root:
-
-**Terminal 1 — Backend:**
-```bash
-npm run server
-```
-
-**Terminal 2 — Frontend:**
-```bash
-npm run client
-```
-
-This starts:
-
-- **Backend** – http://localhost:3001  
-- **Frontend** – http://localhost:3000  
-
-Use the app at **http://localhost:3000**. The React dev server proxies `/api` requests to the backend.
-
-### Verify Backend
-
-- http://localhost:3001 – Server status page  
-- http://localhost:3001/api/status – JSON with `usersCount` and `sessionsCount`
 
 ## Dependencies
 
@@ -189,10 +218,10 @@ All packages are installed via `npm install`. Key dependencies:
 |---------|---------|
 | `react`, `react-dom` | UI framework |
 | `react-scripts` | Create React App build tooling |
-| `@google/generative-ai` | Gemini API client (chat, function calling, code execution, search grounding) |
+| `@google/generative-ai` | Gemini API client (chat, function calling, search grounding) |
 | `react-markdown` | Render markdown in AI responses |
-| `remark-gfm` | GitHub-flavored markdown (tables, strikethrough, etc.) |
-| `recharts` | Interactive charts (available for future visualizations) |
+| `remark-gfm` | GitHub-flavored markdown |
+| `recharts` | Charts (e.g. metric vs time) |
 
 ### Backend
 
@@ -212,41 +241,6 @@ All packages are installed via `npm install`. Key dependencies:
 
 ---
 
-## Features
-
-- **Create account / Login** – Username + password, hashed with bcrypt
-- **Session-based chat history** – Each conversation is a separate session; sidebar lists all chats with delete option
-- **Streaming Gemini responses** – Text streams in real time with animated "..." while thinking; Stop button to cancel
-- **Google Search grounding** – Answers include cited web sources for factual queries
-- **Python code execution** – Gemini writes and runs Python for plots, regression, histogram, scatter, and any analysis the JS tools can't handle
-- **CSV upload** – Drag-and-drop or click to attach a CSV; a slim version of the data (key columns as plain text) plus a full statistical summary are sent to Gemini automatically
-- **Auto-computed engagement column** – When a CSV has `Favorite Count` and `View Count` columns, an `engagement` ratio (Favorite Count / View Count) is added automatically to every row
-- **Client-side data analysis tools** – Fast, zero-cost function-calling tools that run in the browser. Gemini calls these automatically for data questions; results are saved to MongoDB alongside the message:
-  - `compute_column_stats(column)` – mean, median, std, min, max, count for any numeric column
-  - `get_value_counts(column, top_n)` – frequency count of each unique value in a categorical column
-  - `get_top_tweets(sort_column, n, ascending)` – top or bottom N tweets sorted by any metric (including `engagement`), with tweet text and key metrics
-- **Tool routing logic** – The app automatically routes requests: client-side JS tools for simple stats, Python code execution for plots and complex models, Google Search for factual queries
-- **Markdown rendering** – AI responses render headers, lists, code blocks, tables, and links
-- **Image support** – Attach images via drag-and-drop, the 📎 button, or paste from clipboard (Ctrl+V)
-
 ## Chat System Prompt
 
-The AI’s system instructions are loaded from **`public/prompt_chat.txt`**. Edit this file to change the assistant’s behavior (tone, role, format, etc.). Changes take effect on the next message; no rebuild needed.
-
-### How to Get a Good Persona Prompt (Make the AI Sound Like Someone)
-
-To make the AI sound like a specific person (celebrity, character, or role), ask your AI assistant or prompt engineer to do the following:
-
-1. **Pull a bio** – “Look up [person’s name] on Wikipedia and summarize their background, career, and key facts.”
-
-2. **Find speech examples** – “Search for interviews [person] has done and pull direct quotes that show how they talk—phrases they use, tone, vocabulary.”
-
-3. **Describe the vibe** – “What’s their personality? Confident, shy, funny, formal? List 3–5 traits.”
-
-4. **Define the role** – “This person is my assistant for [context, e.g. a Yale SOM course on Generative AI]. They should help with [specific tasks] while staying in character.”
-
-5. **Ask for the full prompt** – “Write a system prompt for `prompt_chat.txt` that includes: (a) a short bio, (b) speech examples and phrases to mimic, (c) personality traits, and (d) their role as my assistant for [your use case].”
-
-**Example request you can paste into ChatGPT/Claude/etc.:**
-
-> Write a system prompt for a chatbot. The AI should sound like [Person X]. Pull their Wikipedia page and 2–3 interviews. Include: (1) a brief bio, (2) 5–8 direct quotes showing how they speak, (3) personality traits, and (4) their role as my teaching assistant for [Course Name] taught by [Professor] at [School]. Put it all in a format I can paste into `prompt_chat.txt`.
+The AI's system instructions are loaded from **`public/prompt_chat.txt`**. Edit this file to change the assistant's behavior. Changes take effect on the next message; no rebuild needed.
